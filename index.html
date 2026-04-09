@@ -3,160 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battery Diagnostic | Minimalist Pro</title>
+    <title>Battery Diagnostic & Architect Pro</title>
     <style>
-        :root { --bg: #f5f5f7; --dark: #1d1d1f; --card: #ffffff; --border: #d2d2d7; --accent: #0071e3; --text-sec: #6e6e73; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 40px 20px; }
-        .container { max-width: 900px; margin: auto; }
-        h1 { font-size: 24px; font-weight: 600; margin-bottom: 40px; text-align: center; letter-spacing: -0.5px; }
-        h2 { font-size: 14px; text-transform: uppercase; color: var(--text-sec); letter-spacing: 1px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-        .section { background: var(--card); padding: 30px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        :root { 
+            --bg: #f5f5f7; 
+            --dark: #1d1d1f; 
+            --card: #ffffff; 
+            --border: #d2d2d7; 
+            --accent: #0071e3; 
+            --text-sec: #6e6e73; 
+            --highlight: #00d1b2;
+            --danger: #e74c3c;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg); 
+            color: var(--dark); 
+            margin: 0; 
+            padding: 40px 20px; 
+            line-height: 1.5;
+        }
+
+        .container { max-width: 850px; margin: auto; }
+        
+        h1 { font-size: 26px; font-weight: 600; margin-bottom: 40px; text-align: center; letter-spacing: -0.5px; }
+        h2 { font-size: 13px; text-transform: uppercase; color: var(--text-sec); letter-spacing: 1.2px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        
+        .section { 
+            background: var(--card); 
+            padding: 30px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            margin-bottom: 24px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+        }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+        
         .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--text-sec); }
-        input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #fafafa; transition: border 0.2s; }
-        input:focus { outline: none; border-color: var(--accent); background: #fff; }
+        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--text-sec); }
+        
+        input, select { 
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; 
+            font-size: 14px; box-sizing: border-box; background: #fafafa; transition: all 0.2s; 
+        }
+        input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
+
+        /* Search Styles */
         .search-container { position: relative; grid-column: 1 / -1; }
-        #search-results { position: absolute; width: 100%; background: white; border: 1px solid var(--border); border-radius: 8px; z-index: 10; display: none; max-height: 200px; overflow-y: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .search-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        #search-results { 
+            position: absolute; width: 100%; background: white; border: 1px solid var(--border); 
+            border-radius: 8px; z-index: 100; display: none; max-height: 250px; overflow-y: auto; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 5px;
+        }
+        .search-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         .search-item:hover { background: #f5f5f7; color: var(--accent); }
-        .btn-main { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: opacity 0.2s; }
-        .btn-main:hover { opacity: 0.9; }
-        .estimate-badge { margin-top: 15px; padding: 12px; background: #f5f5f7; border-radius: 8px; font-size: 13px; color: var(--dark); display: flex; justify-content: space-between; }
-        .val-bold { font-weight: 700; color: var(--accent); }
+
+        /* Simulation & Badge Styles */
+        .display-box { 
+            margin-top: 20px; padding: 15px; background: #f9f9fb; border-radius: 10px; 
+            display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border);
+        }
+        .val-bold { font-weight: 700; color: var(--accent); font-size: 1.1em; }
+        
+        .sim-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+        .eff-bar-bg { width: 100%; height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+        .eff-bar-fill { height: 100%; width: 0%; background: var(--highlight); transition: width 0.5s ease; }
+
+        .btn-main { 
+            width: 100%; padding: 18px; background: var(--dark); color: white; border: none; 
+            border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 15px; transition: 0.2s; 
+        }
+        .btn-main:hover { background: #000; transform: translateY(-1px); }
 
         @media print {
             body { background: white; padding: 0; }
-            .section { border: none; box-shadow: none; padding: 10px; }
+            .section { border: 1px solid #eee; box-shadow: none; page-break-inside: avoid; }
             .btn-main, .search-container { display: none; }
+            input { border: none; background: transparent; padding: 0; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Battery Performance Test</h1>
+    <h1>Battery Architect & Diagnostic</h1>
 
     <div class="section">
         <h2>1. Cell Specifications</h2>
         <div class="grid">
             <div class="search-container">
-                <label>Search Cell Model</label>
-                <input type="text" id="cellSearch" placeholder="Type name e.g. A123..." oninput="handleSearch()">
+                <label>Database Search (Auto-fills Data)</label>
+                <input type="text" id="cellSearch" placeholder="Search cell model (e.g. Samsung 35E)..." oninput="handleSearch()">
                 <div id="search-results"></div>
             </div>
-            <div class="input-group"><label>Capacity (mAh)</label><input type="number" id="cellCap"></div>
-            <div class="input-group"><label>Discharge (A)</label><input type="number" id="cellAmp"></div>
-            <div class="input-group"><label>Voltage (V)</label><input type="number" id="cellV"></div>
-            <div class="input-group"><label>Type</label><input type="text" id="cellType"></div>
-            <div class="input-group"><label>Internal IR (mΩ)</label><input type="number" id="cellIr"></div>
+            <div class="input-group"><label>Capacity (mAh)</label><input type="number" id="cellCap" oninput="updateAll()"></div>
+            <div class="input-group"><label>Max Discharge (A)</label><input type="number" id="cellAmp" oninput="updateAll()"></div>
+            <div class="input-group"><label>Nominal Voltage (V)</label><input type="number" id="cellV" step="0.1" oninput="updateAll()"></div>
+            <div class="input-group"><label>Chemistry</label><input type="text" id="cellType" placeholder="li-ion / lfp" oninput="updateAll()"></div>
+            <div class="input-group"><label>Internal Resistance (mΩ)</label><input type="number" id="cellIr" oninput="updateAll()"></div>
         </div>
     </div>
 
     <div class="section">
         <h2>2. Pack Configuration</h2>
         <div class="grid">
-            <div class="input-group"><label>Series (S)</label><input type="number" id="packS" value="13" oninput="updateEstimates()"></div>
-            <div class="input-group"><label>Parallel (P)</label><input type="number" id="packP" value="5" oninput="updateEstimates()"></div>
-            <div class="input-group"><label>Test Start Voltage (V)</label><input type="number" id="vStart" step="0.01" oninput="updateEstimates()"></div>
+            <div class="input-group"><label>Series (S)</label><input type="number" id="packS" value="10" oninput="updateAll()"></div>
+            <div class="input-group"><label>Parallel (P)</label><input type="number" id="packP" value="3" oninput="updateAll()"></div>
+            <div class="input-group"><label>Test Start Voltage (Resting)</label><input type="number" id="vStart" step="0.01" oninput="updateAll()"></div>
         </div>
-        <div id="estimates" class="estimate-badge">
-            <span>Est. Factory Capacity: <span class="val-bold" id="estCap">--</span></span>
-            <span>Est. Starting SoC: <span class="val-bold" id="estSoC">--</span></span>
+        <div class="display-box">
+            <span>Pack Rating: <span class="val-bold" id="estCap">-- Ah</span></span>
+            <span>Current SoC: <span class="val-bold" id="estSoC">-- %</span></span>
         </div>
     </div>
 
     <div class="section">
-        <h2>3. Test Execution</h2>
+        <h2>3. Simulation & Efficiency</h2>
+        <div class="grid">
+            <div class="input-group"><label>Simulated Load (Amps)</label><input type="number" id="simLoad" value="10" oninput="updateAll()"></div>
+            <div class="input-group"><label>Interconnect Resistance (mΩ)</label><input type="number" id="stripRes" value="5" oninput="updateAll()"></div>
+        </div>
+        
+        <div style="margin-top:20px; border-top: 1px dashed var(--border); padding-top:20px;">
+            <div class="sim-row"><span>Predicted Voltage Sag:</span><span class="val-bold" id="outSag" style="color:var(--danger)">--</span></div>
+            <div class="sim-row"><span>Voltage Under Load:</span><span class="val-bold" id="outVLoad">--</span></div>
+            <div class="sim-row"><span>Waste Heat Dissipation:</span><span class="val-bold" id="outHeat">--</span></div>
+            
+            <div style="margin-top:15px;">
+                <label>System Electrical Efficiency</label>
+                <div class="eff-bar-bg"><div id="eff-bar-fill" class="eff-bar-fill"></div></div>
+                <div style="text-align:right; font-size:12px; font-weight:bold;" id="outEff">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. Real World Test Capture</h2>
         <div class="grid">
             <div class="input-group"><label>End Resting Voltage (V)</label><input type="number" id="vEnd" step="0.01"></div>
-            <div class="input-group"><label>Avg Load Amps (A)</label><input type="number" id="avgAmps" step="0.01"></div>
-            <div class="input-group"><label>Test Duration (Min)</label><input type="number" id="duration" value="30"></div>
+            <div class="input-group"><label>Actual Avg Amps</label><input type="number" id="avgAmps" step="0.01"></div>
+            <div class="input-group"><label>Duration (Minutes)</label><input type="number" id="duration" value="30"></div>
         </div>
-        <button class="btn-main" onclick="calculateFinal()">GENERATE DIAGNOSTIC REPORT</button>
+        <button class="btn-main" onclick="window.print()">PRINT FINAL TEST REPORT</button>
     </div>
 </div>
 
 <script>
     const CELL_DB = [
-        { name: "A123 ANR26650M1B", d:26.25, l:65.0, w:76, cap:2500, amp:50, v:3.3, type:'lfp', ir: 6 },
-        { name: "A123 APR18650M1A", d:18.3, l:65.0, w:40, cap:1100, amp:30, v:3.3, type:'lfp', ir: 6 },
-        { name: "Samsung 35E 18650", cap:3500, amp:8, v:3.6, type:'li-ion', ir: 25 },
-        { name: "EVE 26V 18650", cap:2550, amp:7.5, v:3.6, type:'li-ion', ir: 20 }
+        { name: "A123 ANR26650M1B", cap:2500, amp:50, v:3.3, type:'lfp', ir: 6 },
+        { name: "A123 APR18650M1A", cap:1100, amp:30, v:3.3, type:'lfp', ir: 6 },
+        { name: "Samsung 35E 18650", cap:3500, amp:8, v:3.6, type:'li-ion', ir: 26 },
+        { name: "Samsung 30Q 18650", cap:3000, amp:15, v:3.6, type:'li-ion', ir: 20 },
+        { name: "Sony VTC6 18650", cap:3000, amp:30, v:3.6, type:'li-ion', ir: 13 },
+        { name: "LG MJ1 18650", cap:3500, amp:10, v:3.6, type:'li-ion', ir: 28 },
+        { name: "Molicel P42A 21700", cap:4200, amp:45, v:3.6, type:'li-ion', ir: 9 }
     ];
 
     function handleSearch() {
         const query = document.getElementById('cellSearch').value.toLowerCase();
-        const resultsDiv = document.getElementById('search-results');
-        resultsDiv.innerHTML = '';
-        if (!query) { resultsDiv.style.display = 'none'; return; }
+        const resDiv = document.getElementById('search-results');
+        resDiv.innerHTML = '';
+        if (!query) { resDiv.style.display = 'none'; return; }
 
         const filtered = CELL_DB.filter(c => c.name.toLowerCase().includes(query));
         if (filtered.length > 0) {
-            resultsDiv.style.display = 'block';
+            resDiv.style.display = 'block';
             filtered.forEach(cell => {
-                const div = document.createElement('div');
-                div.className = 'search-item';
-                div.innerText = cell.name;
-                div.onclick = () => selectCell(cell);
-                resultsDiv.appendChild(div);
+                const item = document.createElement('div');
+                item.className = 'search-item';
+                item.innerText = cell.name;
+                item.onclick = () => {
+                    document.getElementById('cellSearch').value = cell.name;
+                    document.getElementById('cellCap').value = cell.cap;
+                    document.getElementById('cellAmp').value = cell.amp;
+                    document.getElementById('cellV').value = cell.v;
+                    document.getElementById('cellType').value = cell.type;
+                    document.getElementById('cellIr').value = cell.ir;
+                    resDiv.style.display = 'none';
+                    updateAll();
+                };
+                resDiv.appendChild(item);
             });
-        } else { resultsDiv.style.display = 'none'; }
-    }
-
-    function selectCell(cell) {
-        document.getElementById('cellSearch').value = cell.name;
-        document.getElementById('cellCap').value = cell.cap;
-        document.getElementById('cellAmp').value = cell.amp;
-        document.getElementById('cellV').value = cell.v;
-        document.getElementById('cellType').value = cell.type;
-        document.getElementById('cellIr').value = cell.ir;
-        document.getElementById('search-results').style.display = 'none';
-        updateEstimates();
+        }
     }
 
     function getSoC(v, s, type) {
         const vCell = v / s;
-        // Simple mapping based on chemistry
         let vPts = [3.0, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2];
         let sPts = [0, 6, 14, 25, 38, 51, 63, 74, 84, 91, 100];
-        
-        if (type === 'lfp') {
+        if (type.toLowerCase() === 'lfp') {
             vPts = [2.5, 3.0, 3.2, 3.25, 3.28, 3.3, 3.32, 3.33, 3.34, 3.35, 3.6];
             sPts = [0, 5, 10, 20, 30, 45, 60, 75, 85, 95, 100];
         }
-        
         if (vCell <= vPts[0]) return 0;
         if (vCell >= vPts[vPts.length-1]) return 100;
-        for (let i = 0; i < vPts.length - 1; i++) {
+        for (let i = 0; i < vPts.length-1; i++) {
             if (vCell >= vPts[i] && vCell <= vPts[i+1]) {
                 return sPts[i] + (vCell - vPts[i]) * (sPts[i+1] - sPts[i]) / (vPts[i+1] - vPts[i]);
             }
         }
-        return 50;
+        return 0;
     }
 
-    function updateEstimates() {
-        const p = parseFloat(document.getElementById('packP').value) || 0;
+    function updateAll() {
         const s = parseFloat(document.getElementById('packS').value) || 0;
+        const p = parseFloat(document.getElementById('packP').value) || 0;
         const cellCap = parseFloat(document.getElementById('cellCap').value) || 0;
         const vStart = parseFloat(document.getElementById('vStart').value) || 0;
-        const type = document.getElementById('cellType').value.toLowerCase();
+        const type = document.getElementById('cellType').value || 'li-ion';
+        const cellIr = parseFloat(document.getElementById('cellIr').value) || 0;
+        const loadA = parseFloat(document.getElementById('simLoad').value) || 0;
+        const stripRes = parseFloat(document.getElementById('stripRes').value) || 0;
 
-        const totalCapAh = (cellCap * p) / 1000;
-        document.getElementById('estCap').innerText = totalCapAh.toFixed(2) + " Ah";
+        // 1. Pack Estimates
+        const totalCap = (cellCap * p) / 1000;
+        document.getElementById('estCap').innerText = totalCap.toFixed(2) + " Ah";
+        if (s > 0 && vStart > 0) {
+            document.getElementById('estSoC').innerText = getSoC(vStart, s, type).toFixed(1) + "%";
+        }
 
-        if (vStart > 0 && s > 0) {
-            const soc = getSoC(vStart, s, type);
-            document.getElementById('estSoC').innerText = soc.toFixed(1) + "%";
+        // 2. Simulation Logic
+        if (s > 0 && p > 0 && loadA > 0) {
+            const packIr = ((cellIr * s) / p) + stripRes;
+            const vSag = loadA * (packIr / 1000);
+            const heatW = Math.pow(loadA, 2) * (packIr / 1000);
+            const efficiency = ((vStart * loadA - heatW) / (vStart * loadA)) * 100;
+
+            document.getElementById('outSag').innerText = "-" + vSag.toFixed(2) + " V";
+            document.getElementById('outVLoad').innerText = (vStart - vSag).toFixed(2) + " V";
+            document.getElementById('outHeat').innerText = heatW.toFixed(1) + " W";
+            document.getElementById('outEff').innerText = efficiency.toFixed(1) + "%";
+            
+            const fill = document.getElementById('eff-bar-fill');
+            fill.style.width = efficiency + "%";
+            fill.style.background = efficiency < 85 ? "var(--danger)" : (efficiency < 95 ? "#f1c40f" : "var(--highlight)");
         }
     }
 
-    function calculateFinal() {
-        // This would trigger the calculation results similar to your previous app version
-        alert("Report generated. Ready to print!");
-        window.print();
-    }
+    // Close search on click outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) document.getElementById('search-results').style.display = 'none';
+    });
 </script>
+
 </body>
 </html>
