@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battery Pro Architect & Diagnostic</title>
+    <title>Battery Diagnostic Tool</title>
     <style>
         :root { 
             --bg: #f5f5f7; --dark: #1d1d1f; --card: #ffffff; --border: #d2d2d7; 
@@ -13,7 +13,9 @@
         .container { max-width: 950px; margin: auto; }
         
         .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .title-group { display: flex; align-items: center; gap: 10px; }
         h1 { font-size: 22px; margin: 0; letter-spacing: -0.5px; }
+        
         .btn-reset { padding: 6px 12px; background: transparent; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .btn-reset:hover { background: #eee; }
 
@@ -23,14 +25,16 @@
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
         .input-group { margin-bottom: 8px; }
         label { display: block; font-size: 10px; font-weight: 700; margin-bottom: 4px; color: var(--text-sec); text-transform: uppercase; }
-        input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; box-sizing: border-box; background: #fafafa; }
+        input[type=number], input[type=text] { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; box-sizing: border-box; background: #fafafa; }
         
         /* Sliders */
         .slider-box { background: #f9f9fb; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
-        input[type=range] { width: 100%; margin: 10px 0; cursor: pointer; }
+        .slider-item { margin-bottom: 15px; }
+        .slider-item:last-child { margin-bottom: 0; }
+        input[type=range] { width: 100%; margin: 8px 0; cursor: pointer; accent-color: var(--accent); }
         .slider-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; }
 
-        /* Stats Grid - High Density */
+        /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .stat-item { border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; display: flex; justify-content: space-between; font-size: 11px; }
         .stat-label { color: var(--text-sec); }
@@ -43,21 +47,26 @@
         .search-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
         .search-item:hover { background: var(--bg); color: var(--accent); }
 
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
         th { text-align: left; color: var(--text-sec); padding: 6px; border-bottom: 2px solid var(--bg); }
         td { padding: 4px; border-bottom: 1px solid #f8f8f8; }
         
         .btn-calc { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
-        .btn-print { width: 100%; padding: 12px; background: var(--dark); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
 
-        @media print { .btn-print, .btn-calc, .btn-reset, .search-container, .no-print { display: none !important; } .section { box-shadow: none; border: 1px solid #ddd; } }
+        @media print { .btn-calc, .btn-reset, .search-container, .no-print { display: none !important; } .section { box-shadow: none; border: 1px solid #ddd; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header-flex">
-        <h1>Battery Architect & Diagnostic</h1>
+        <div class="title-group">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);">
+                <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+                <line x1="22" y1="11" x2="22" y2="13"></line>
+            </svg>
+            <h1>Battery Diagnostic Tool</h1>
+        </div>
         <button class="btn-reset" onclick="window.location.reload()">RESET PAGE</button>
     </div>
 
@@ -89,20 +98,28 @@
         <h2>3. Simulation & Efficiency</h2>
         
         <div class="slider-box">
-            <div class="slider-labels">
-                <span>Current SoC (Starting Point)</span>
-                <span id="labelSocDisp">4.20V / 100%</span>
+            <div class="slider-item">
+                <div class="slider-labels">
+                    <span>Current SoC (Starting Point)</span>
+                    <span id="labelSocDisp">4.20V / 100%</span>
+                </div>
+                <input type="range" id="socSlider" min="250" max="420" value="420" oninput="updateAll()">
             </div>
-            <input type="range" id="socSlider" min="250" max="420" value="420" oninput="updateAll()">
             
-            <div class="slider-labels">
-                <span>Load Amps</span>
-                <span id="labelLoadDisp">10 A</span>
+            <div class="slider-item">
+                <div class="slider-labels">
+                    <span>Load Amps</span>
+                    <span id="labelLoadDisp">10 A</span>
+                </div>
+                <input type="range" id="loadSlider" min="0" max="150" value="10" oninput="updateAll()">
             </div>
-            <input type="range" id="loadSlider" min="0" max="150" value="10" oninput="updateAll()">
-            <div class="input-group" style="margin-top:5px; width: 150px;">
-                <label>Strip Res (mΩ)</label>
-                <input type="number" id="stripRes" value="5" oninput="updateAll()">
+
+            <div class="slider-item">
+                <div class="slider-labels">
+                    <span>Strip Res (mΩ)</span>
+                    <span id="labelStripDisp">5 mΩ</span>
+                </div>
+                <input type="range" id="stripResSlider" min="1" max="250" value="5" oninput="updateAll()">
             </div>
         </div>
 
@@ -149,13 +166,10 @@
             <div class="stat-item"><span class="stat-label">Factory Cap</span><span class="stat-val" id="resFactCap">--</span></div>
             <div class="stat-item"><span class="stat-label">Actual Consumed</span><span class="stat-val" id="resAh">--</span></div>
             <div class="stat-item"><span class="stat-label">Total Energy</span><span class="stat-val" id="resWh">--</span></div>
-            <div class="stat-item"><span class="stat-label">Real Pack IR</span><span class="stat-val" id="resIr">--</span></div>
             <div class="stat-item"><span class="stat-label">Estimated Total Cap</span><span class="stat-val" id="resTotalCap">--</span></div>
             <div class="stat-item"><span class="stat-label">Health Estimate</span><span class="stat-val" id="resLife" style="font-size:1.4em;">--</span></div>
         </div>
     </div>
-
-    <button class="btn-print" onclick="window.print()">PRINT FINAL REPORT</button>
 </div>
 
 <script>
@@ -213,26 +227,26 @@
         const p = parseFloat(document.getElementById('packP').value) || 0;
         const vCell = parseFloat(document.getElementById('socSlider').value) / 100;
         const loadA = parseFloat(document.getElementById('loadSlider').value) || 0;
+        const stripRes = parseFloat(document.getElementById('stripResSlider').value) || 0;
         const cellCap = parseFloat(document.getElementById('cellCap').value) || 0;
         const cellMaxA = parseFloat(document.getElementById('cellMaxA').value) || 0;
         const cellIr = parseFloat(document.getElementById('cellIr').value) || 0;
-        const stripRes = parseFloat(document.getElementById('stripRes').value) || 0;
         const lvcCut = parseFloat(document.getElementById('lvcCell').value) || 0;
         const type = document.getElementById('cellType').value;
 
-        // UI Updates
+        // Label Updates
         const socPer = getSoCPercent(vCell, type);
         document.getElementById('labelSocDisp').innerText = `${vCell.toFixed(2)}V / ${socPer.toFixed(0)}%`;
         document.getElementById('labelLoadDisp').innerText = `${loadA} A`;
+        document.getElementById('labelStripDisp').innerText = `${stripRes} mΩ`;
         
-        // C-Rate Logic
+        // Physics Logic
         const crate = loadA / ((cellCap * p) / 1000);
         const cellLoad = loadA / p;
         const crateEl = document.getElementById('outCrate');
         crateEl.innerText = crate.toFixed(2) + " C";
         crateEl.className = cellLoad > cellMaxA ? "stat-val danger-text" : "stat-val";
 
-        // Physics
         const packV = vCell * s;
         const cellIrOhms = cellIr / 1000;
         const stripResOhms = stripRes / 1000;
@@ -246,9 +260,9 @@
         const heatCells = Math.pow(loadA, 2) * (cellIrOhms * s / p);
         const heatStrips = Math.pow(loadA, 2) * stripResOhms;
         const totalWaste = heatCells + heatStrips;
-        const eff = (pwrUseful / pwrTotal) * 100;
+        const eff = pwrTotal > 0 ? (pwrUseful / pwrTotal) * 100 : 100;
 
-        // Metric Display
+        // Metrics Display
         document.getElementById('outNet').innerText = netV.toFixed(2) + " V";
         document.getElementById('outLvcC').innerText = lvcCut.toFixed(2) + " V";
         document.getElementById('outLvcP').innerText = (lvcCut * s).toFixed(1) + " V";
@@ -307,13 +321,12 @@
         const socStart = getSoCPercent(vStart/s, type);
         const socEnd = getSoCPercent(vEnd/s, type);
         const socDrop = (socStart - socEnd) / 100;
-        const estTotalCap = ahConsumed / socDrop;
-        const health = (estTotalCap / fCap) * 100;
+        const estTotalCap = socDrop > 0 ? ahConsumed / socDrop : 0;
+        const health = fCap > 0 ? (estTotalCap / fCap) * 100 : 0;
 
         document.getElementById('resFactCap').innerText = fCap.toFixed(2) + " Ah";
         document.getElementById('resAh').innerText = ahConsumed.toFixed(3) + " Ah";
         document.getElementById('resWh').innerText = (avgW * (duration/60)).toFixed(1) + " Wh";
-        document.getElementById('resIr').innerText = "Simulated Only";
         document.getElementById('resTotalCap').innerText = estTotalCap.toFixed(2) + " Ah";
         document.getElementById('resLife').innerText = Math.min(health, 100).toFixed(1) + "%";
         
