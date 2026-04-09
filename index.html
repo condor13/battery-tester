@@ -10,7 +10,7 @@
             --accent: #0071e3; --text-sec: #6e6e73; --highlight: #00d1b2; --danger: #e74c3c;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 20px; line-height: 1.4; }
-        .container { max-width: 950px; margin: auto; }
+        .container { max-width: 1000px; margin: auto; }
         
         .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .title-group { display: flex; align-items: center; gap: 10px; }
@@ -27,10 +27,15 @@
         label { display: block; font-size: 10px; font-weight: 700; margin-bottom: 4px; color: var(--text-sec); text-transform: uppercase; }
         input[type=number], input[type=text] { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; box-sizing: border-box; background: #fafafa; }
         
+        /* Summary Boxes (Section 2 & 3) */
+        .summary-box { background: #f9f9fb; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; }
+        .summary-item { display: flex; flex-direction: column; }
+        .summary-label { font-size: 9px; color: var(--text-sec); text-transform: uppercase; font-weight: 700; }
+        .summary-val { font-size: 13px; font-weight: 700; color: var(--dark); }
+
         /* Sliders */
         .slider-box { background: #f9f9fb; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 15px; }
         .slider-item { margin-bottom: 15px; }
-        .slider-item:last-child { margin-bottom: 0; }
         input[type=range] { width: 100%; margin: 8px 0; cursor: pointer; accent-color: var(--accent); }
         .slider-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; }
 
@@ -51,7 +56,8 @@
         th { text-align: left; color: var(--text-sec); padding: 6px; border-bottom: 2px solid var(--bg); }
         td { padding: 4px; border-bottom: 1px solid #f8f8f8; }
         
-        .btn-calc { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .btn-calc { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; font-size: 14px; }
+        .btn-calc:hover { background: #005bb5; }
 
         @media print { .btn-calc, .btn-reset, .search-container, .no-print { display: none !important; } .section { box-shadow: none; border: 1px solid #ddd; } }
     </style>
@@ -73,13 +79,13 @@
     <div class="section">
         <h2>1. Cell Specifications</h2>
         <div class="search-container">
-            <input type="text" id="cellSearch" placeholder="Search cell database..." oninput="handleSearch()">
+            <input type="text" id="cellSearch" placeholder="Search cell database (Samsung, Molicel, Sony...)" oninput="handleSearch()">
             <div id="search-results"></div>
         </div>
         <div class="grid-inputs">
             <div class="input-group"><label>Cap (mAh)</label><input type="number" id="cellCap" value="3500" oninput="updateAll()"></div>
             <div class="input-group"><label>Max Cont (A)</label><input type="number" id="cellMaxA" value="10" oninput="updateAll()"></div>
-            <div class="input-group"><label>Nominal (V)</label><input type="number" id="cellV" value="3.6" step="0.1"></div>
+            <div class="input-group"><label>Nominal (V)</label><input type="number" id="cellV" value="3.6" step="0.1" oninput="updateAll()"></div>
             <div class="input-group"><label>IR (mΩ)</label><input type="number" id="cellIr" value="25" oninput="updateAll()"></div>
             <div class="input-group"><label>Type</label><input type="text" id="cellType" value="li-ion" oninput="updateAll()"></div>
         </div>
@@ -92,33 +98,29 @@
             <div class="input-group"><label>Parallel (P)</label><input type="number" id="packP" value="3" oninput="updateAll()"></div>
             <div class="input-group"><label>LVC Cutoff (V)</label><input type="number" id="lvcCell" value="3.0" step="0.1" oninput="updateAll()"></div>
         </div>
+        
+        <div class="summary-box">
+            <div class="summary-item"><span class="summary-label">Config</span><span class="summary-val" id="sumConfig">--</span></div>
+            <div class="summary-item"><span class="summary-label">Label Rating</span><span class="summary-val" id="sumRating">--</span></div>
+            <div class="summary-item"><span class="summary-label">V Range</span><span class="summary-val" id="sumVRange">--</span></div>
+            <div class="summary-item"><span class="summary-label">Max Output</span><span class="summary-val" id="sumMaxOut">--</span></div>
+            <div class="summary-item"><span class="summary-label">Total Energy</span><span class="summary-val" id="sumEnergy">--</span></div>
+        </div>
     </div>
 
     <div class="section">
         <h2>3. Simulation & Efficiency</h2>
-        
         <div class="slider-box">
             <div class="slider-item">
-                <div class="slider-labels">
-                    <span>Current SoC (Starting Point)</span>
-                    <span id="labelSocDisp">4.20V / 100%</span>
-                </div>
+                <div class="slider-labels"><span>Current SoC (Starting Point)</span><span id="labelSocDisp">4.20V / 100%</span></div>
                 <input type="range" id="socSlider" min="250" max="420" value="420" oninput="updateAll()">
             </div>
-            
             <div class="slider-item">
-                <div class="slider-labels">
-                    <span>Load Amps</span>
-                    <span id="labelLoadDisp">10 A</span>
-                </div>
+                <div class="slider-labels"><span>Load Amps</span><span id="labelLoadDisp">10 A</span></div>
                 <input type="range" id="loadSlider" min="0" max="150" value="10" oninput="updateAll()">
             </div>
-
             <div class="slider-item">
-                <div class="slider-labels">
-                    <span>Strip Res (mΩ)</span>
-                    <span id="labelStripDisp">5 mΩ</span>
-                </div>
+                <div class="slider-labels"><span>Strip Res (mΩ)</span><span id="labelStripDisp">5 mΩ</span></div>
                 <input type="range" id="stripResSlider" min="1" max="250" value="5" oninput="updateAll()">
             </div>
         </div>
@@ -127,28 +129,26 @@
             <div class="stat-item"><span class="stat-label">Mode</span><span class="stat-val">Discharge</span></div>
             <div class="stat-item"><span class="stat-label">Net Output</span><span class="stat-val" id="outNet">--</span></div>
             <div class="stat-item"><span class="stat-label">LVC (Cell)</span><span class="stat-val" id="outLvcC">--</span></div>
-            
             <div class="stat-item"><span class="stat-label">LVC (Pack)</span><span class="stat-val" id="outLvcP">--</span></div>
             <div class="stat-item"><span class="stat-label">Usable Cap</span><span class="stat-val" id="outUsableAh">--</span></div>
             <div class="stat-item"><span class="stat-label">Runtime</span><span class="stat-val" id="outTime">--</span></div>
-            
             <div class="stat-item"><span class="stat-label">Current</span><span class="stat-val" id="outCrate">--</span></div>
             <div class="stat-item"><span class="stat-label">Total Pwr</span><span class="stat-val" id="outPwrT">--</span></div>
             <div class="stat-item"><span class="stat-label">Useful Pwr</span><span class="stat-val" id="outPwrU">--</span></div>
-            
             <div class="stat-item"><span class="stat-label">Heat (cells)</span><span class="stat-val" id="outHeatC">--</span></div>
             <div class="stat-item"><span class="stat-label">Heat (strips)</span><span class="stat-val" id="outHeatS">--</span></div>
             <div class="stat-item"><span class="stat-label">Total Waste</span><span class="stat-val" id="outWaste">--</span></div>
         </div>
         <div style="text-align: right; margin-top:10px; font-size: 11px;">
-            <span style="color:var(--text-sec)">Efficiency:</span> 
-            <span id="outEff" style="font-weight:bold; color:var(--accent)">0%</span>
+            <span style="color:var(--text-sec); font-size: 10px;">Efficiency:</span> 
+            <span id="outEff" style="font-weight:bold; color:var(--accent)">100%</span>
         </div>
     </div>
 
     <div class="section">
         <h2>4. Real World Test Log</h2>
         <div class="grid-inputs no-print">
+            <div class="input-group"><label>Test Start Voltage (V)</label><input type="number" id="vStartTest" step="0.01" placeholder="V at t=0 (Resting)"></div>
             <div class="input-group"><label>Snapshots</label><input type="number" id="snapCount" value="6" oninput="generateTable()"></div>
             <div class="input-group"><label>Interval (Min)</label><input type="number" id="snapInterval" value="5" oninput="generateTable()"></div>
             <div class="input-group"><label>Final Resting (V)</label><input type="number" id="vEnd" step="0.01"></div>
@@ -163,11 +163,14 @@
     <div class="section" id="resultsSection" style="display:none;">
         <h2 style="color:var(--accent)">5. Partial Discharge Analysis</h2>
         <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="stat-item"><span class="stat-label">Factory Cap</span><span class="stat-val" id="resFactCap">--</span></div>
+            <div class="stat-item"><span class="stat-label">Factory Capacity</span><span class="stat-val" id="resFactCap">--</span></div>
             <div class="stat-item"><span class="stat-label">Actual Consumed</span><span class="stat-val" id="resAh">--</span></div>
-            <div class="stat-item"><span class="stat-label">Total Energy</span><span class="stat-val" id="resWh">--</span></div>
-            <div class="stat-item"><span class="stat-label">Estimated Total Cap</span><span class="stat-val" id="resTotalCap">--</span></div>
-            <div class="stat-item"><span class="stat-label">Health Estimate</span><span class="stat-val" id="resLife" style="font-size:1.4em;">--</span></div>
+            <div class="stat-item"><span class="stat-label">Total Energy Delivered</span><span class="stat-val" id="resWh">--</span></div>
+            <div class="stat-item"><span class="stat-label">Calculated Pack IR</span><span class="stat-val" id="resIr">--</span></div>
+            <div class="stat-item"><span class="stat-label">Average Test Current</span><span class="stat-val" id="resAvgA">--</span></div>
+            <div class="stat-item"><span class="stat-label">Test Duration</span><span class="stat-val" id="resDur">--</span></div>
+            <div class="stat-item"><span class="stat-label">Extrapolated Total Cap</span><span class="stat-val" id="resTotalCap">--</span></div>
+            <div class="stat-item"><span class="stat-label">SOH (State of Health)</span><span class="stat-val" id="resLife" style="font-size:1.4em; color:var(--accent);">--</span></div>
         </div>
     </div>
 </div>
@@ -175,6 +178,7 @@
 <script>
     const CELL_DB = [
         { name: "Samsung 35E", cap:3500, amp:8, v:3.6, ir:26, type:'li-ion' },
+        { name: "Samsung 30Q", cap:3000, amp:15, v:3.6, ir:20, type:'li-ion' },
         { name: "Molicel P42A", cap:4200, amp:45, v:3.6, ir:9, type:'li-ion' },
         { name: "Sony VTC6", cap:3000, amp:30, v:3.6, ir:13, type:'li-ion' },
         { name: "A123 26650", cap:2500, amp:50, v:3.3, ir:6, type:'lfp' }
@@ -208,7 +212,7 @@
     function getSoCPercent(vCell, type) {
         let vPts = [3.0, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2];
         let sPts = [0, 6, 14, 25, 38, 51, 63, 74, 84, 91, 100];
-        if (type === 'lfp') {
+        if (type.toLowerCase() === 'lfp') {
             vPts = [2.5, 3.0, 3.2, 3.25, 3.28, 3.3, 3.32, 3.33, 3.34, 3.35, 3.6];
             sPts = [0, 5, 10, 20, 30, 45, 60, 75, 85, 95, 100];
         }
@@ -223,38 +227,54 @@
     }
 
     function updateAll() {
-        const s = parseFloat(document.getElementById('packS').value) || 0;
-        const p = parseFloat(document.getElementById('packP').value) || 0;
+        const s = parseFloat(document.getElementById('packS').value) || 1;
+        const p = parseFloat(document.getElementById('packP').value) || 1;
         const vCell = parseFloat(document.getElementById('socSlider').value) / 100;
         const loadA = parseFloat(document.getElementById('loadSlider').value) || 0;
         const stripRes = parseFloat(document.getElementById('stripResSlider').value) || 0;
+        
         const cellCap = parseFloat(document.getElementById('cellCap').value) || 0;
         const cellMaxA = parseFloat(document.getElementById('cellMaxA').value) || 0;
+        const cellNomV = parseFloat(document.getElementById('cellV').value) || 0;
         const cellIr = parseFloat(document.getElementById('cellIr').value) || 0;
         const lvcCut = parseFloat(document.getElementById('lvcCell').value) || 0;
         const type = document.getElementById('cellType').value;
 
-        // Label Updates
+        // 1. Pack Summary (Section 2)
+        const packAh = (cellCap * p) / 1000;
+        const maxPackA = cellMaxA * p;
+        const maxPackKw = (maxPackA * cellNomV * s) / 1000;
+        const totalWh = (packAh * cellNomV * s);
+        
+        let vMin = type === 'lfp' ? 2.5 : 3.0;
+        let vMax = type === 'lfp' ? 3.6 : 4.2;
+
+        document.getElementById('sumConfig').innerText = `${s}S ${p}P`;
+        document.getElementById('sumRating').innerText = packAh.toFixed(2) + " Ah";
+        document.getElementById('sumVRange').innerText = `${(vMin * s).toFixed(1)}V - ${(vMax * s).toFixed(1)}V`;
+        document.getElementById('sumMaxOut').innerText = `${maxPackA}A / ${maxPackKw.toFixed(2)}kW`;
+        document.getElementById('sumEnergy').innerText = totalWh.toFixed(1) + " Wh";
+
+        // 2. Labels & C-Rate
         const socPer = getSoCPercent(vCell, type);
         document.getElementById('labelSocDisp').innerText = `${vCell.toFixed(2)}V / ${socPer.toFixed(0)}%`;
         document.getElementById('labelLoadDisp').innerText = `${loadA} A`;
         document.getElementById('labelStripDisp').innerText = `${stripRes} mΩ`;
         
-        // Physics Logic
-        const crate = loadA / ((cellCap * p) / 1000);
+        const crate = packAh > 0 ? loadA / packAh : 0;
         const cellLoad = loadA / p;
         const crateEl = document.getElementById('outCrate');
         crateEl.innerText = crate.toFixed(2) + " C";
         crateEl.className = cellLoad > cellMaxA ? "stat-val danger-text" : "stat-val";
 
+        // 3. Physics Simulation
         const packV = vCell * s;
         const cellIrOhms = cellIr / 1000;
         const stripResOhms = stripRes / 1000;
-        
         const packIr = (cellIrOhms * s / p) + stripResOhms;
+        
         const vSag = loadA * packIr;
         const netV = packV - vSag;
-        
         const pwrTotal = packV * loadA;
         const pwrUseful = netV * loadA;
         const heatCells = Math.pow(loadA, 2) * (cellIrOhms * s / p);
@@ -262,12 +282,11 @@
         const totalWaste = heatCells + heatStrips;
         const eff = pwrTotal > 0 ? (pwrUseful / pwrTotal) * 100 : 100;
 
-        // Metrics Display
         document.getElementById('outNet').innerText = netV.toFixed(2) + " V";
         document.getElementById('outLvcC').innerText = lvcCut.toFixed(2) + " V";
         document.getElementById('outLvcP').innerText = (lvcCut * s).toFixed(1) + " V";
-        document.getElementById('outUsableAh').innerText = (((cellCap * p) / 1000) * (socPer / 100)).toFixed(2) + " Ah";
-        document.getElementById('outTime').innerText = loadA > 0 ? (((cellCap * p / 1000) * (socPer/100) / loadA) * 60).toFixed(0) + " min" : "∞";
+        document.getElementById('outUsableAh').innerText = (packAh * (socPer / 100)).toFixed(2) + " Ah";
+        document.getElementById('outTime').innerText = loadA > 0 ? ((packAh * (socPer/100) / loadA) * 60).toFixed(0) + " min" : "∞";
         document.getElementById('outPwrT').innerText = pwrTotal.toFixed(0) + " W";
         document.getElementById('outPwrU').innerText = pwrUseful.toFixed(0) + " W";
         document.getElementById('outHeatC').innerText = heatCells.toFixed(1) + " W";
@@ -300,7 +319,7 @@
     function calculateFinalResult() {
         const s = parseFloat(document.getElementById('packS').value);
         const p = parseFloat(document.getElementById('packP').value);
-        const vStart = parseFloat(document.getElementById('socSlider').value) / 100 * s; 
+        const vStart = parseFloat(document.getElementById('vStartTest').value);
         const vEnd = parseFloat(document.getElementById('vEnd').value);
         const fCap = parseFloat(document.getElementById('cellCap').value) * p / 1000;
         const type = document.getElementById('cellType').value;
@@ -315,7 +334,8 @@
 
         const avgA = totalAmps / count;
         const avgW = totalWatts / count;
-        const duration = (count * parseFloat(document.getElementById('snapInterval').value));
+        const interval = parseFloat(document.getElementById('snapInterval').value);
+        const duration = count * interval;
         const ahConsumed = avgA * (duration / 60);
         
         const socStart = getSoCPercent(vStart/s, type);
@@ -324,16 +344,4 @@
         const estTotalCap = socDrop > 0 ? ahConsumed / socDrop : 0;
         const health = fCap > 0 ? (estTotalCap / fCap) * 100 : 0;
 
-        document.getElementById('resFactCap').innerText = fCap.toFixed(2) + " Ah";
-        document.getElementById('resAh').innerText = ahConsumed.toFixed(3) + " Ah";
-        document.getElementById('resWh').innerText = (avgW * (duration/60)).toFixed(1) + " Wh";
-        document.getElementById('resTotalCap').innerText = estTotalCap.toFixed(2) + " Ah";
-        document.getElementById('resLife').innerText = Math.min(health, 100).toFixed(1) + "%";
-        
-        document.getElementById('resultsSection').style.display = 'block';
-    }
-
-    window.onload = () => { generateTable(); updateAll(); };
-</script>
-</body>
-</html>
+        // Internal Resistance calculation from the
