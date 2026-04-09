@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battery Architect & Log Pro</title>
+    <title>Battery Diagnostic & Performance Report</title>
     <style>
         :root { 
             --bg: #f5f5f7; --dark: #1d1d1f; --card: #ffffff; --border: #d2d2d7; 
             --accent: #0071e3; --text-sec: #6e6e73; --highlight: #00d1b2; --danger: #e74c3c;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding: 20px; line-height: 1.5; }
-        .container { max-width: 900px; margin: auto; }
+        .container { max-width: 950px; margin: auto; }
         h1 { font-size: 24px; text-align: center; margin-bottom: 30px; letter-spacing: -0.5px; }
-        h2 { font-size: 12px; text-transform: uppercase; color: var(--text-sec); letter-spacing: 1.2px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        h2 { font-size: 11px; text-transform: uppercase; color: var(--text-sec); letter-spacing: 1.2px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         .section { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .input-group { margin-bottom: 10px; }
-        label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 5px; color: var(--text-sec); }
+        label { display: block; font-size: 10px; font-weight: 700; margin-bottom: 5px; color: var(--text-sec); text-transform: uppercase; }
         input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; box-sizing: border-box; background: #fafafa; }
         .search-container { position: relative; margin-bottom: 15px; }
         #search-results { position: absolute; width: 100%; background: white; border: 1px solid var(--border); border-radius: 6px; z-index: 100; display: none; max-height: 200px; overflow-y: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
@@ -27,47 +27,50 @@
         .val-bold { font-weight: 700; color: var(--accent); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
         th { text-align: left; color: var(--text-sec); padding: 8px; border-bottom: 2px solid var(--bg); }
-        td { padding: 5px; }
+        td { padding: 5px; border-bottom: 1px solid #f0f0f0; }
         .eff-bar-bg { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin: 8px 0; }
         .eff-bar-fill { height: 100%; width: 0%; background: var(--highlight); transition: width 0.5s; }
-        .btn-print { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 20px; }
-        @media print { .btn-print, .search-container, .setup-controls { display: none; } body { padding: 0; } .section { box-shadow: none; margin-bottom: 10px; } }
+        .btn-calc { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .btn-print { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        @media print { .btn-print, .btn-calc, .search-container, .setup-controls, .no-print { display: none !important; } body { padding: 0; background: white; } .section { border: 1px solid #eee; margin-bottom: 10px; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Battery Test Report</h1>
+    <h1>Battery Performance Test Report</h1>
 
     <div class="section">
         <h2>1. Cell Specifications</h2>
         <div class="search-container">
-            <label>Search Database</label>
-            <input type="text" id="cellSearch" placeholder="Start typing cell name..." oninput="handleSearch()">
+            <label>Database Search</label>
+            <input type="text" id="cellSearch" placeholder="Search cell name (e.g. Molicel)..." oninput="handleSearch()">
             <div id="search-results"></div>
         </div>
-        <div class="grid-3">
+        <div class="grid-4">
             <div class="input-group"><label>Cap (mAh)</label><input type="number" id="cellCap" oninput="updateAll()"></div>
+            <div class="input-group"><label>Max Cont. (A)</label><input type="number" id="cellMaxA"></div>
+            <div class="input-group"><label>Nominal (V)</label><input type="number" id="cellV" step="0.1"></div>
             <div class="input-group"><label>IR (mΩ)</label><input type="number" id="cellIr" oninput="updateAll()"></div>
-            <div class="input-group"><label>Chem</label><input type="text" id="cellType" value="li-ion" oninput="updateAll()"></div>
+            <div class="input-group"><label>Chemistry</label><input type="text" id="cellType" value="li-ion" oninput="updateAll()"></div>
         </div>
     </div>
 
     <div class="section">
         <h2>2. Pack Configuration</h2>
         <div class="grid-3">
-            <div class="input-group"><label>Series (S)</label><input type="number" id="packS" value="13" oninput="updateAll()"></div>
-            <div class="input-group"><label>Parallel (P)</label><input type="number" id="packP" value="5" oninput="updateAll()"></div>
+            <div class="input-group"><label>Series (S)</label><input type="number" id="packS" value="10" oninput="updateAll()"></div>
+            <div class="input-group"><label>Parallel (P)</label><input type="number" id="packP" value="3" oninput="updateAll()"></div>
             <div class="input-group"><label>Resting Start (V)</label><input type="number" id="vStart" step="0.01" oninput="updateAll()"></div>
         </div>
         <div class="display-box">
-            <span>Nominal Capacity: <span class="val-bold" id="estCap">-- Ah</span></span>
+            <span>Factory Capacity: <span class="val-bold" id="estCap">-- Ah</span></span>
             <span>Start SoC: <span class="val-bold" id="estSoC">-- %</span></span>
         </div>
     </div>
 
-    <div class="section">
-        <h2>3. Simulation & Efficiency</h2>
+    <div class="section no-print">
+        <h2>3. Simulation & Efficiency (Pre-Test)</h2>
         <div class="grid-3">
             <div class="input-group"><label>Sim Load (A)</label><input type="number" id="simLoad" value="10" oninput="updateAll()"></div>
             <div class="input-group"><label>Strip Res (mΩ)</label><input type="number" id="stripRes" value="5" oninput="updateAll()"></div>
@@ -75,19 +78,19 @@
         </div>
         <div class="display-box" style="display:block;">
             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                <span>Est. Consumption: <span class="val-bold" id="simCons">-- Ah</span></span>
-                <span>Heat Loss: <span class="val-bold" id="outHeat" style="color:var(--danger)">-- W</span></span>
+                <span>Simulated Heat: <span class="val-bold" id="outHeat" style="color:var(--danger)">-- W</span></span>
+                <span>Est. Efficiency: <span class="val-bold" id="outEffText">0%</span></span>
             </div>
             <div class="eff-bar-bg"><div id="eff-bar-fill" class="eff-bar-fill"></div></div>
-            <div style="text-align:right; font-size:10px;" id="outEff">Efficiency: 0%</div>
         </div>
     </div>
 
     <div class="section">
         <h2>4. Real World Test Capture</h2>
-        <div class="grid-2 setup-controls">
-            <div class="input-group"><label>Number of Snapshots</label><input type="number" id="snapCount" value="6" oninput="generateTable()"></div>
-            <div class="input-group"><label>Interval (Minutes)</label><input type="number" id="snapInterval" value="5" oninput="generateTable()"></div>
+        <div class="grid-3 setup-controls">
+            <div class="input-group"><label>Snapshots</label><input type="number" id="snapCount" value="6" oninput="generateTable()"></div>
+            <div class="input-group"><label>Interval (Min)</label><input type="number" id="snapInterval" value="5" oninput="generateTable()"></div>
+            <div class="input-group"><label>End Resting (V)</label><input type="number" id="vEnd" step="0.01"></div>
         </div>
         <table id="testTable">
             <thead>
@@ -95,9 +98,22 @@
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
-        <div class="input-group" style="margin-top:15px; width: 200px;">
-            <label>End Resting Voltage (V)</label>
-            <input type="number" id="vEnd" step="0.01">
+        <button class="btn-calc" onclick="calculateFinalResult()">5. RUN PARTIAL DISCHARGE ANALYSIS</button>
+    </div>
+
+    <div class="section" id="resultsSection" style="display:none;">
+        <h2 style="color:var(--accent)">5. Performance Analysis Results</h2>
+        <div class="grid-3">
+            <div class="input-group"><label>Test Configuration</label><div class="val-bold" id="resConfig">--</div></div>
+            <div class="input-group"><label>Factory Capacity</label><div class="val-bold" id="resFactCap">--</div></div>
+            <div class="input-group"><label>Average Current</label><div class="val-bold" id="resAvgA">--</div></div>
+            
+            <div class="input-group"><label>Capacity Consumed</label><div class="val-bold" id="resAh">--</div></div>
+            <div class="input-group"><label>Total Energy</label><div class="val-bold" id="resWh">--</div></div>
+            <div class="input-group"><label>Internal Resistance</label><div class="val-bold" id="resIr">--</div></div>
+
+            <div class="input-group"><label>Estimated Capacity</label><div class="val-bold" id="resTotalCap">--</div></div>
+            <div class="input-group"><label>Health Percentage</label><div class="val-bold" id="resLife" style="font-size:1.4em;">--</div></div>
         </div>
     </div>
 
@@ -106,10 +122,108 @@
 
 <script>
     const CELL_DB = [
-        { name: "Samsung 35E", cap:3500, ir:26, type:'li-ion' },
-        { name: "Samsung 30Q", cap:3000, ir:20, type:'li-ion' },
-        { name: "A123 26650", cap:2500, ir:6, type:'lfp' },
-        { name: "Molicel P42A", cap:4200, ir:9, type:'li-ion' }
+        { name: "A123 ANR26650M1B", d:26.25, l:65.0, w:76, cap:2500, amp:50, v:3.3, type:'lfp', ir: 6 },
+        { name: "A123 APR18650M1A", d:18.3, l:65.0, w:40, cap:1100, amp:30, v:3.3, type:'lfp', ir: 6 },
+        { name: "BAK N18650CL", d:18.4, l:65.0, w:46, cap:2900, amp:8, v:3.6, type:'li-ion', ir: 35 },
+        { name: "BAK N18650CP", d:18.4, l:65.0, w:46, cap:3350, amp:6, v:3.6, type:'li-ion', ir: 40 },
+        { name: "BAK N21700CD", d:21.2, l:70.5, w:68, cap:4800, amp:10, v:3.6, type:'li-ion', ir: 28 },
+        { name: "BAK N21700CG", d:21.2, l:70.5, w:68, cap:5000, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "CATL 32140 Na-Ion", d:32.0, l:140.0, w:270, cap:10000, amp:20, v:3.0, type:'na-ion', ir: 8 },
+        { name: "DMEGC INR18650-26E", d:18.4, l:65.0, w:46, cap:2600, amp:5, v:3.6, type:'li-ion', ir: 35 },
+        { name: "Efest 10440 (AAA)", d:10.4, l:44.0, w:10, cap:350, amp:3, v:3.7, type:'li-ion', ir: 45 },
+        { name: "Epoch 14500", d:14.3, l:49.5, w:20, cap:1100, amp:10, v:3.6, type:'li-ion', ir: 20 },
+        { name: "EVE 25P (18650)", d:18.35, l:65.0, w:47, cap:2500, amp:30, v:3.6, type:'li-ion', ir: 14 },
+        { name: "EVE 26V (18650)", d:18.4, l:65.0, w:46, cap:2550, amp:7, v:3.6, type:'li-ion', ir: 30 },
+        { name: "EVE 33V (18650)", d:18.35, l:65.0, w:46, cap:3300, amp:10, v:3.6, type:'li-ion', ir: 26 },
+        { name: "EVE 40P (21700)", d:21.25, l:70.5, w:68, cap:4000, amp:50, v:3.6, type:'li-ion', ir: 9 },
+        { name: "EVE 50E (21700)", d:21.25, l:70.5, w:69, cap:5000, amp:15, v:3.6, type:'li-ion', ir: 20 },
+        { name: "EVE INR18650-33V", d:18.35, l:65.0, w:46, cap:3300, amp:10, v:3.6, type:'li-ion', ir: 26 },
+        { name: "Farasis 21700", d:21.2, l:70.5, w:68, cap:4000, amp:35, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Generic 32650 LFP", d:32.2, l:65.5, w:140, cap:5000, amp:20, v:3.2, type:'lfp', ir: 10 },
+        { name: "Hakadi 18650 Na-Ion", d:18.5, l:65.2, w:40, cap:1500, amp:5, v:3.1, type:'na-ion', ir: 25 },
+        { name: "Headway 38120", d:38.0, l:122.0, w:330, cap:10000, amp:100, v:3.2, type:'lfp', ir: 4 },
+        { name: "Headway 40152", d:40.0, l:152.0, w:480, cap:15000, amp:150, v:3.2, type:'lfp', ir: 3 },
+        { name: "Hohm Grown 26650", d:26.6, l:65.4, w:98, cap:4244, amp:30, v:3.7, type:'li-ion', ir: 12 },
+        { name: "iJoy 26650", d:26.5, l:65.3, w:95, cap:4200, amp:40, v:3.7, type:'li-ion', ir: 10 },
+        { name: "K2 Energy LFP18650", d:18.3, l:65.0, w:40, cap:1500, amp:12, v:3.2, type:'lfp', ir: 20 },
+        { name: "K2 Energy LFP26650", d:26.5, l:65.5, w:86, cap:3800, amp:12, v:3.2, type:'lfp', ir: 15 },
+        { name: "KeepPower 18350", d:18.4, l:35.0, w:25, cap:1200, amp:10, v:3.7, type:'li-ion', ir: 28 },
+        { name: "LG F1L (18650)", d:18.4, l:65.0, w:46, cap:3350, amp:5, v:3.6, type:'li-ion', ir: 35 },
+        { name: "LG H40 (21700)", d:21.25, l:70.6, w:68, cap:4000, amp:35, v:3.6, type:'li-ion', ir: 12 },
+        { name: "LG HE2 (18650)", d:18.4, l:65.0, w:47, cap:2500, amp:20, v:3.6, type:'li-ion', ir: 22 },
+        { name: "LG HE4 (18650)", d:18.4, l:65.0, w:47, cap:2500, amp:20, v:3.6, type:'li-ion', ir: 22 },
+        { name: "LG HG2 (18650)", d:18.5, l:65.2, w:45, cap:3000, amp:20, v:3.6, type:'li-ion', ir: 20 },
+        { name: "LG M29 (18650)", d:18.4, l:65.0, w:46, cap:2850, amp:6, v:3.6, type:'li-ion', ir: 30 },
+        { name: "LG M36 (18650)", d:18.5, l:65.2, w:49, cap:3600, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "LG M50 (21700)", d:21.25, l:70.6, w:68, cap:5000, amp:7, v:3.6, type:'li-ion', ir: 30 },
+        { name: "LG M50LT (21700)", d:21.25, l:70.6, w:69, cap:5000, amp:14, v:3.6, type:'li-ion', ir: 25 },
+        { name: "LG M58T (21700)", d:21.25, l:70.6, w:70, cap:5800, amp:12, v:3.6, type:'li-ion', ir: 28 },
+        { name: "LG MH1 (18650)", d:18.4, l:65.0, w:49, cap:3200, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "LG MJ1 (18650)", d:18.6, l:65.2, w:49, cap:3500, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "Lishen LR1865LA", d:18.3, l:65.0, w:45, cap:2000, amp:20, v:3.6, type:'li-ion', ir: 20 },
+        { name: "Lishen LR21700SA", d:21.2, l:70.5, w:69, cap:4000, amp:12, v:3.6, type:'li-ion', ir: 25 },
+        { name: "Lishen LR2170LA", d:21.2, l:70.5, w:69, cap:4000, amp:30, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Lishen LR2170SD", d:21.2, l:70.5, w:69, cap:5000, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "Molicel M35A (18650)", d:18.6, l:65.2, w:48, cap:3500, amp:10, v:3.6, type:'li-ion', ir: 25 },
+        { name: "Molicel M50A (21700)", d:21.55, l:70.15, w:67, cap:5000, amp:15, v:3.6, type:'li-ion', ir: 25 },
+        { name: "Molicel P26A (18650)", d:18.6, l:65.0, w:46, cap:2600, amp:35, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Molicel P26B (18650)", d:18.6, l:65.0, w:46, cap:2600, amp:35, v:3.6, type:'li-ion', ir: 11 },
+        { name: "Molicel P28A (18650)", d:18.6, l:65.0, w:46, cap:2800, amp:35, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Molicel P28B (18650)", d:18.6, l:65.0, w:46, cap:2800, amp:40, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Molicel P30B (18650)", d:18.6, l:65.0, w:46, cap:3000, amp:36, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Molicel P42A (21700)", d:21.55, l:70.15, w:67, cap:4200, amp:45, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Molicel P45B (21700)", d:21.55, l:70.15, w:68, cap:4500, amp:45, v:3.6, type:'li-ion', ir: 9 },
+        { name: "Molicel P50B (21700)", d:21.55, l:70.15, w:68, cap:5000, amp:50, v:3.6, type:'li-ion', ir: 8 },
+        { name: "P42A (21700) Re-wrap", d:21.5, l:70.2, w:66, cap:4200, amp:45, v:3.6, type:'li-ion', ir: 11 },
+        { name: "Panasonic Eneloop AA", d:14.35, l:50.4, w:27, cap:1900, amp:5, v:1.2, type:'nimh', ir: 25 },
+        { name: "Panasonic Eneloop Pro", d:14.5, l:50.5, w:30, cap:2500, amp:5, v:1.2, type:'nimh', ir: 30 },
+        { name: "Panasonic NCR18650A", d:18.5, l:65.3, w:47, cap:3100, amp:6, v:3.6, type:'li-ion', ir: 40 },
+        { name: "Panasonic NCR18650B", d:18.5, l:65.3, w:47.5, cap:3400, amp:6, v:3.6, type:'li-ion', ir: 38 },
+        { name: "Panasonic NCR18650BD", d:18.5, l:65.3, w:48, cap:3200, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "Panasonic NCR18650PF", d:18.5, l:65.3, w:48, cap:2900, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "Panasonic NCR20700A", d:20.35, l:70.3, w:60, cap:3100, amp:30, v:3.6, type:'li-ion', ir: 12 },
+        { name: "QB 26800", d:26.25, l:80.0, w:120, cap:6800, amp:30, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Samsung 20S (18650)", d:18.4, l:65.0, w:45, cap:2000, amp:30, v:3.6, type:'li-ion', ir: 11 },
+        { name: "Samsung 25R (18650)", d:18.4, l:65.0, w:45, cap:2500, amp:20, v:3.6, type:'li-ion', ir: 13 },
+        { name: "Samsung 25S (18650)", d:18.4, l:65.0, w:45, cap:2500, amp:25, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Samsung 26J (18650)", d:18.4, l:65.0, w:45, cap:2600, amp:5.2, v:3.6, type:'li-ion', ir: 35 },
+        { name: "Samsung 29E (18650)", d:18.4, l:65.0, w:45, cap:2850, amp:2.75, v:3.6, type:'li-ion', ir: 45 },
+        { name: "Samsung 30Q (18650)", d:18.4, l:65.0, w:46, cap:3000, amp:15, v:3.6, type:'li-ion', ir: 15 },
+        { name: "Samsung 30T (21700)", d:21.25, l:70.3, w:67, cap:3000, amp:35, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Samsung 33J (18650)", d:18.4, l:65.0, w:46, cap:3270, amp:6, v:3.6, type:'li-ion', ir: 32 },
+        { name: "Samsung 35E (18650)", d:18.55, l:65.25, w:50, cap:3500, amp:8, v:3.6, type:'li-ion', ir: 35 },
+        { name: "Samsung 40T (21700)", d:21.25, l:70.3, w:67, cap:4000, amp:35, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Samsung 40T3 (21700)", d:21.15, l:70.3, w:68, cap:4000, amp:40, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Samsung 48G (21700)", d:21.25, l:70.3, w:69, cap:4800, amp:10, v:3.6, type:'li-ion', ir: 30 },
+        { name: "Samsung 50E (21700)", d:21.25, l:70.8, w:69, cap:5000, amp:10, v:3.6, type:'li-ion', ir: 25 },
+        { name: "Samsung 50G (21700)", d:21.25, l:70.3, w:69, cap:5000, amp:10, v:3.6, type:'li-ion', ir: 28 },
+        { name: "Samsung 50S (21700)", d:21.25, l:70.6, w:72, cap:5000, amp:25, v:3.6, type:'li-ion', ir: 14 },
+        { name: "Samsung 53S (21700)", d:21.25, l:70.8, w:70, cap:5300, amp:10, v:3.6, type:'li-ion', ir: 14 },
+        { name: "Sanyo NCR18650GA", d:18.5, l:65.3, w:48, cap:3500, amp:10, v:3.6, type:'li-ion', ir: 38 },
+        { name: "Sanyo NCR20700B", d:20.35, l:70.3, w:62, cap:4250, amp:15, v:3.6, type:'li-ion', ir: 25 },
+        { name: "Sanyo NCR2070C", d:20.35, l:70.3, w:62, cap:3500, amp:30, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Sanyo UR18650NSX", d:18.5, l:65.1, w:47, cap:2500, amp:20, v:3.6, type:'li-ion', ir: 20 },
+        { name: "Sanyo UR18650ZY", d:18.4, l:65.0, w:46, cap:2600, amp:5, v:3.6, type:'li-ion', ir: 40 },
+        { name: "Shockli 26650", d:26.4, l:65.5, w:94, cap:5500, amp:20, v:3.6, type:'li-ion', ir: 18 },
+        { name: "Sony VTC3 (18650)", d:18.3, l:65.0, w:45, cap:1600, amp:30, v:3.6, type:'li-ion', ir: 14 },
+        { name: "Sony VTC4 (18650)", d:18.35, l:65.0, w:45, cap:2100, amp:30, v:3.6, type:'li-ion', ir: 12 },
+        { name: "Sony VTC5 (18650)", d:18.35, l:65.0, w:44, cap:2600, amp:20, v:3.6, type:'li-ion', ir: 13 },
+        { name: "Sony VTC5A (18650)", d:18.35, l:65.2, w:48, cap:2600, amp:25, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Sony VTC5D (18650)", d:18.35, l:65.2, w:48, cap:2800, amp:25, v:3.6, type:'li-ion', ir: 11 },
+        { name: "Sony VTC6 (18650)", d:18.35, l:65.2, w:46.6, cap:3000, amp:15, v:3.6, type:'li-ion', ir: 15 },
+        { name: "Sony VTC6A (21700)", d:21.2, l:70.2, w:68, cap:4000, amp:40, v:3.6, type:'li-ion', ir: 10 },
+        { name: "Tenpower 20SG (18650)", d:18.4, l:65.0, w:45, cap:2000, amp:30, v:3.6, type:'li-ion', ir: 13 },
+        { name: "Tenpower INR18650-25SG", d:18.4, l:65.0, w:46, cap:2500, amp:30, v:3.6, type:'li-ion', ir: 13 },
+        { name: "Tesla/Generic 4680", d:46.0, l:80.0, w:355, cap:9000, amp:50, v:3.7, type:'li-ion', ir: 8 },
+        { name: "Toshiba SCiB 23660", d:23.0, l:66.0, w:65, cap:2900, amp:40, v:2.4, type:'lto', ir: 2 },
+        { name: "Vapcell F52 (21700)", d:21.3, l:70.6, w:70, cap:5200, amp:15, v:3.6, type:'li-ion', ir: 20 },
+        { name: "Vapcell F60 (21700)", d:21.6, l:70.8, w:72, cap:6000, amp:12.5, v:3.6, type:'li-ion', ir: 25 },
+        { name: "Vapcell G53 (26650)", d:26.6, l:65.4, w:96, cap:5300, amp:20, v:3.6, type:'li-ion', ir: 15 },
+        { name: "Vapcell H10 (14500)", d:14.4, l:49.0, w:19, cap:1000, amp:10, v:3.6, type:'li-ion', ir: 18 },
+        { name: "Vapcell K64 (26650)", d:26.6, l:65.2, w:94, cap:6400, amp:15, v:3.6, type:'li-ion', ir: 22 },
+        { name: "Vapcell S40 (18650)", d:18.5, l:65.2, w:49, cap:4000, amp:10, v:3.6, type:'li-ion', ir: 28 },
+        { name: "Vapcell T8 (16340)", d:16.4, l:34.0, w:18, cap:850, amp:3, v:3.6, type:'li-ion', ir: 40 },
+        { name: "Wotech 32700 LFP", d:32.2, l:70.5, w:145, cap:6000, amp:30, v:3.2, type:'lfp', ir: 8 },
     ];
 
     function handleSearch() {
@@ -127,6 +241,8 @@
                     document.getElementById('cellCap').value = c.cap;
                     document.getElementById('cellIr').value = c.ir;
                     document.getElementById('cellType').value = c.type;
+                    document.getElementById('cellMaxA').value = c.amp;
+                    document.getElementById('cellV').value = c.v;
                     document.getElementById('cellSearch').value = c.name;
                     resDiv.style.display = 'none'; updateAll();
                 };
@@ -142,12 +258,10 @@
         body.innerHTML = '';
         for (let i = 0; i < count; i++) {
             const row = body.insertRow();
-            row.innerHTML = `
-                <td>${i * interval} min</td>
+            row.innerHTML = `<td>${i * interval} min</td>
                 <td><input type="number" step="0.01" class="t-v" oninput="calcWatts(this)"></td>
                 <td><input type="number" step="0.01" class="t-a" oninput="calcWatts(this)"></td>
-                <td class="t-w">0.0</td>
-            `;
+                <td class="t-w">0.0</td>`;
         }
     }
 
@@ -158,6 +272,24 @@
         row.querySelector('.t-w').innerText = (v * a).toFixed(1);
     }
 
+    function getSoC(v, s, type) {
+        const vCell = v / s;
+        let vPts = [3.0, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.2];
+        let sPts = [0, 6, 14, 25, 38, 51, 63, 74, 84, 91, 100];
+        if (type.toLowerCase() === 'lfp') {
+            vPts = [2.5, 3.0, 3.2, 3.25, 3.28, 3.3, 3.32, 3.33, 3.34, 3.35, 3.6];
+            sPts = [0, 5, 10, 20, 30, 45, 60, 75, 85, 95, 100];
+        }
+        if (vCell <= vPts[0]) return 0;
+        if (vCell >= vPts[vPts.length-1]) return 100;
+        for (let i = 0; i < vPts.length-1; i++) {
+            if (vCell >= vPts[i] && vCell <= vPts[i+1]) {
+                return sPts[i] + (vCell - vPts[i]) * (sPts[i+1] - sPts[i]) / (vPts[i+1] - vPts[i]);
+            }
+        }
+        return 50;
+    }
+
     function updateAll() {
         const s = parseFloat(document.getElementById('packS').value) || 0;
         const p = parseFloat(document.getElementById('packP').value) || 0;
@@ -166,21 +298,64 @@
         const load = parseFloat(document.getElementById('simLoad').value) || 0;
         const ir = parseFloat(document.getElementById('cellIr').value) || 0;
         const res = parseFloat(document.getElementById('stripRes').value) || 0;
-        const time = parseFloat(document.getElementById('simTime').value) || 0;
 
         document.getElementById('estCap').innerText = ((cap * p) / 1000).toFixed(2) + " Ah";
-        document.getElementById('simCons').innerText = (load * (time / 60)).toFixed(2) + " Ah";
+        if (s > 0 && v > 0) document.getElementById('estSoC').innerText = getSoC(v, s, document.getElementById('cellType').value).toFixed(1) + "%";
 
         if (s > 0 && p > 0 && load > 0) {
             const pIr = ((ir * s) / p) + res;
             const heat = Math.pow(load, 2) * (pIr / 1000);
             const eff = (((v * load) - heat) / (v * load)) * 100;
             document.getElementById('outHeat').innerText = heat.toFixed(1) + " W";
-            document.getElementById('outEff').innerText = "Efficiency: " + eff.toFixed(1) + "%";
-            const bar = document.getElementById('eff-bar-fill');
-            bar.style.width = eff + "%";
-            bar.style.background = eff < 90 ? "var(--danger)" : "var(--highlight)";
+            document.getElementById('outEffText').innerText = eff.toFixed(1) + "%";
+            document.getElementById('eff-bar-fill').style.width = eff + "%";
         }
+    }
+
+    function calculateFinalResult() {
+        const s = parseFloat(document.getElementById('packS').value);
+        const p = parseFloat(document.getElementById('packP').value);
+        const vStart = parseFloat(document.getElementById('vStart').value);
+        const vEnd = parseFloat(document.getElementById('vEnd').value);
+        const fCap = parseFloat(document.getElementById('cellCap').value) * p / 1000;
+        const type = document.getElementById('cellType').value;
+
+        const rows = document.querySelectorAll('#tableBody tr');
+        let totalAmps = 0, totalWatts = 0, count = 0;
+        rows.forEach(row => {
+            const a = parseFloat(row.querySelector('.t-a').value) || 0;
+            const w = parseFloat(row.querySelector('.t-w').innerText) || 0;
+            if (a > 0) { totalAmps += a; totalWatts += w; count++; }
+        });
+
+        const avgA = totalAmps / count;
+        const avgW = totalWatts / count;
+        const duration = (count * parseFloat(document.getElementById('snapInterval').value));
+        const ahConsumed = avgA * (duration / 60);
+        const whDelivered = avgW * (duration / 60);
+
+        const socStart = getSoC(vStart, s, type);
+        const socEnd = getSoC(vEnd, s, type);
+        const socDrop = (socStart - socEnd) / 100;
+        const estTotalCap = ahConsumed / socDrop;
+        const health = (estTotalCap / fCap) * 100;
+
+        // Calculate IR from sag in first row
+        const firstV = parseFloat(rows[0].querySelector('.t-v').value);
+        const firstA = parseFloat(rows[0].querySelector('.t-a').value);
+        const packIr = ((vStart - firstV) / firstA) * 1000;
+
+        document.getElementById('resConfig').innerText = `${s}S ${p}P (${document.getElementById('cellSearch').value})`;
+        document.getElementById('resFactCap').innerText = fCap.toFixed(2) + " Ah";
+        document.getElementById('resAvgA').innerText = avgA.toFixed(2) + " A";
+        document.getElementById('resAh').innerText = ahConsumed.toFixed(3) + " Ah";
+        document.getElementById('resWh').innerText = whDelivered.toFixed(1) + " Wh";
+        document.getElementById('resIr').innerText = packIr.toFixed(1) + " mΩ";
+        document.getElementById('resTotalCap').innerText = estTotalCap.toFixed(2) + " Ah";
+        document.getElementById('resLife').innerText = Math.min(health, 100).toFixed(1) + "%";
+        
+        document.getElementById('resultsSection').style.display = 'block';
+        window.scrollTo(0, document.body.scrollHeight);
     }
 
     window.onload = () => { generateTable(); updateAll(); };
